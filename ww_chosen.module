@@ -1,0 +1,55 @@
+<?php
+/**
+ * Implements hook_library().
+ */
+function ww_chosen_library() {
+  $path = drupal_get_path('module', 'ww_chosen');
+
+  $libraries['chosen'] = array(
+    'title' => 'chosen',
+    'website' => 'https://github.com/harvesthq/chosen/releases',
+    'version' => '1.4.1',
+    'js' => array(
+      $path . '/js/chosen/chosen.jquery.js' => array(),
+    ),
+    'css' => array(
+      $path . '/js/chosen/chosen.css' => array(),
+    ),
+  );
+
+  $libraries['attach-chosen'] = array(
+    'title' => 'Attach chosen',
+    'website' => 'http://www.wisewaresas.com/',
+    'version' => '1',
+    'js' => array(
+      $path . '/js/ww_chosen.js' => array(),
+    ),
+    'dependencies' => array(
+      array('ww_chosen', 'chosen'),
+    ),
+  );
+
+  return $libraries;
+}
+
+/**
+ * Implements hook_element_info_alter().
+ */
+function ww_chosen_element_info_alter(&$type) {
+  if (isset($type['select'])) {
+    $type['select']['#attach_chosen'] = FALSE;
+    $type['select']['#process'][] = 'ww_chosen_form_process_select';
+  }
+}
+
+function ww_chosen_form_process_select($element) {
+  if ($element['#attach_chosen']) {
+    $attach_chosen = &drupal_static(__FUNCTION__, FALSE);
+    if (!$attach_chosen) {
+      $element['#attached']['library'][] = array('ww_chosen', 'attach-chosen');
+    }
+    $element['#attributes']['class'][] = 'attach-chosen';
+  }
+
+  return $element;
+}
